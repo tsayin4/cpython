@@ -2334,6 +2334,15 @@ _textiowrapper_readline(textio *self, Py_ssize_t limit)
     if (_textiowrapper_writeflush(self) < 0)
         return NULL;
 
+    if (limit == 0) {
+        if (self->decoder == NULL) {
+            return _unsupported(self->state, "not readable");
+        }
+        /* Nothing can be returned, so don't read from the stream at all,
+           the same way read(0) doesn't. */
+        return Py_NewRef(&_Py_STR(empty));
+    }
+
     chunked = 0;
 
     while (1) {

@@ -1,0 +1,3 @@
+:meth:`~io.IOBase.readline` on an :class:`io.TextIOWrapper` read from the
+underlying stream even when *size* was ``0``, which could block or raise
+:exc:`UnicodeDecodeError` although nothing can be returned.

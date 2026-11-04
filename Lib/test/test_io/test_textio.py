@@ -756,6 +756,25 @@ class TextIOWrapperTest:
             reads += c
         self.assertEqual(reads, "AA\nBB")
 
+    def test_readline_zero_size(self):
+        # gh-161281: readline(0) cannot return anything, so it must not read
+        # from the stream, the same way read(0) does not.
+        class NoRead(self.BytesIO):
+            def read(self, *args):
+                raise AssertionError("should not read from the stream")
+            read1 = read
+            readinto = read
+
+        txt = self.TextIOWrapper(NoRead(b"AA\nBB"), encoding="utf-8")
+        self.assertEqual(txt.read(0), "")
+        self.assertEqual(txt.readline(0), "")
+
+        # Undecodable data must not be decoded either.
+        txt = self.TextIOWrapper(self.BytesIO(b"\xff\xfe\xfdAA\n"),
+                                 encoding="utf-8")
+        self.assertEqual(txt.read(0), "")
+        self.assertEqual(txt.readline(0), "")
+
     def test_readlines(self):
         txt = self.TextIOWrapper(self.BytesIO(b"AA\nBB\nCC"), encoding="utf-8")
         self.assertEqual(txt.readlines(), ["AA\n", "BB\n", "CC"])
